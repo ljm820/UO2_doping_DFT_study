@@ -1,0 +1,6 @@
+# ===== KPOINTS for bulk =====
+Automatic mesh
+0
+Monkhorst-Pack
+8   8   8
+0   0   0

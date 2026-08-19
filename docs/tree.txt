@@ -1,0 +1,98 @@
+UO2_doping_DFT_study/
+├── README.md                              # 项目总览与快速开始
+├── workflow.sh                            # 主工作流（Stage 0-7，含分支判断）
+├── monitor.sh                             # 运行状态监控脚本
+├── docs/
+│   ├── 01_文章解析与方法论.md              # 论文方法/公式/参数/分析手段
+│   ├── 02_研究框架与工作流.md              # Stage 0-7 + 分支节点 N1-N8
+│   ├── 03_VASP输入参数详解.md              # INCAR/POSCAR/KPOINTS/POTCAR 细节
+│   ├── 04_关键技术指标与筛选标准.md        # KPI、收敛判据、筛选规则
+│   └── tree.txt                           # 本文件（目录树 + 执行顺序）
+├── scripts/
+│   ├── structure_utils.py                 # UO2 体相 / slab 生成 / 分层 / 排序 / AFM
+│   ├── vasp_utils.py                      # INCAR/KPOINTS/MAGMOM + OUTCAR 解析
+│   ├── build_bulk.py                      # Stage 0: UO2/MO2 体相 + O2 分子
+│   ├── generate_surfaces.py               # Stage 1: 111/110/100 六层 2x2 slab
+│   ├── doping_poscar.py                   # Stage 2: Mo/Nb/Zr/Ti x 4 含量掺杂
+│   ├── create_vacancy.py                  # Stage 3: O 空位（O:M=1.92）
+│   ├── build_hyperstoich.py               # Stage 4: 间隙 O（O:M=2.08）
+│   ├── write_vasp_inputs.py               # 批量写 INCAR/KPOINTS/MAGMOM
+│   ├── check_convergence.py               # 批量检查 OUTCAR 收敛状态
+│   ├── analyze_energies.py                # Stage 7: 表面能/替换能/缺陷形成能
+│   ├── bader_analysis.py                  # Bader 电荷 + 自旋密度接口
+│   └── subsurface_doping.py               # Stage 5: 次表面掺杂（方法 B/C）[待生成]
+├── templates/
+│   ├── INCAR_bulk                         # 体相 INCAR 模板
+│   ├── INCAR_surface_sto                  # 化学计量比表面 INCAR 模板
+│   ├── INCAR_surface_substo               # 缺陷表面 INCAR 模板
+│   ├── KPOINTS_bulk / KPOINTS_surface / KPOINTS_gamma
+├── potcars/
+│   ├── POTCAR_info.md                     # 赝势选择原因与方法
+│   └── make_potcar.sh                     # 批量拼接 POTCAR（U-M-O 顺序）
+├── 00_bulk/                               # Stage 0 计算目录（POSCAR/INCAR/KPOINTS）
+│   ├── UO2_bulk/                          #   UO2 萤石 a=5.47 A, AFM, DFT+U
+│   ├── MoO2_bulk/ NbO2_bulk/ ZrO2_bulk/ TiO2_bulk/   # 替换能参考相
+│   └── O2_molecule/                       #   20 A 盒子三重态 O2
+├── 01_surface_generation/                 # Stage 1 纯 UO2 表面
+│   ├── UO2_111/ UO2_110/ UO2_100/        #   6 层 2x2 slab，18 A 真空
+│   └── kconv_7x7x1/                       #   k 点收敛测试目录
+├── 02_stoichiometric_MOX/                 # Stage 2 化学计量比掺杂
+│   └── {Mo,Nb,Zr,Ti}/
+│       └── MOX-{8,17,25,33}/             #   y = 0.08/0.17/0.25/0.33
+│           └── {111,110,100}/             #   表面替换（方法 A）
+├── 03_substoichiometric/                  # Stage 3 低化学计量比
+│   ├── UO2-x/{111,110,100}/               #   纯 UO2 O 空位
+│   └── U1-y{Mo,Nb,Zr,Ti}yO2-x/MOX-8/
+│       └── {111,110,100}/
+│           ├── vac_next_to_dopant/        #   空位紧邻掺杂位
+│           └── vac_away_from_dopant/      #   空位远离掺杂位
+├── 04_hyperstoichiometric/                # Stage 4 过化学计量比
+│   ├── UO2+x/{111,110,100}/               #   纯 UO2 间隙 O
+│   └── U1-y{Mo,Nb,Zr,Ti}yO2+x/MOX-8/
+│       └── {111,110,100}/
+│           ├── inter_next_to_dopant/      #   间隙 O 紧邻掺杂位
+│           └── inter_away_from_dopant/    #   间隙 O 远离掺杂位
+├── 05_pydefect/                           # Stage 6 pydefect 缺陷热力学
+│   ├── pydefect_config.yaml               #   缺陷/电荷态/化学势配置
+│   ├── run_pydefect.py                    #   setup / parse / formation-energy
+│   ├── perfect/                           #   2x2x2 完美超胞（96 原子）
+│   ├── Va_O1_{0,1,2}/                     #   O 空位多电荷态目录
+│   └── M_U1_{q}/                          #   掺杂置换多电荷态目录
+├── 06_analysis/                           # Stage 7 分析输出目录（CSV/图）
+├── results/                               # energies.csv / conv_summary.csv 等
+└── .gitignore                             # 忽略大文件（OUTCAR/CHGCAR 等）
+
+================================================================
+执行顺序（对应 workflow.sh --all）
+================================================================
+  Stage 0  → 00_bulk: UO2/MO2/O2 体相优化
+      │  [N1] a_calc 与 5.47 A 偏差 < 2%
+      ▼
+  Stage 1  → 01_surface_generation: 111/110/100 slab
+      │  [N2] E_sur(111) ∈ [0.45, 0.60] J/m²
+      ▼
+  Stage 2  → 02_stoichiometric_MOX: 4 元素 × 4 含量 × 3 晶面
+      │  [N3] E_rep 趋势单调
+      ▼
+  Stage 3  → 03_substoichiometric: O 空位（UO2-x 与 MOX）
+      │  [N4] UO2 空位能 ≈ 5.81/5.47/4.98 eV
+      ▼
+  Stage 4  → 04_hyperstoichiometric: 间隙 O（UO2+x 与 MOX）
+      │  [N5] 间隙 O 形成能与空位能对比合理
+      ▼
+  Stage 5  → 05_subsurface_111: 次表面掺杂方法 B/C（仅 111）
+      │  [N6] 方法 A/B/C 替换能差异 < 0.2 eV
+      ▼
+  Stage 6  → 05_pydefect: 缺陷形成能/电荷态/转变能级
+      │  [N7] 转变能级位于带隙内、排序内洽
+      ▼
+  Stage 7  → 06_analysis + results: 汇总表格/图/自旋/Bader
+            [N8] 所有物理量趋势自洽 → 出报告
+
+================================================================
+监控与筛选（详见 docs/04）
+================================================================
+  python3 scripts/check_convergence.py . --csv results/conv_summary.csv
+  ./monitor.sh --watch
+  python3 scripts/analyze_energies.py --out results/energies.csv
+  python3 scripts/bader_analysis.py --dirs <目录> --run-bader --csv results/bader.csv

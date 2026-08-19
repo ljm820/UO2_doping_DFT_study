@@ -1,0 +1,51 @@
+# ============================================================
+# pydefect 配置 (pydefect_config.yaml)
+# 用于 UO2 掺杂体系缺陷热力学分析
+# ============================================================
+
+# 完美超胞设置
+perfect_supercell:
+  min_atoms: 96            # UO2 萤石，建议 2x2x2 = 96 原子以上
+  max_atoms: 300
+
+# 缺陷种类与电荷态
+defects:
+  Va_O1: [0, 1, 2]         # O 空位（1 位点）
+  Oi:   [-2, -1, 0]        # 间隙氧
+  Mo_U1: [-2, -1, 0, 1]    # 掺杂置换（示例，按实际元素生成）
+  Nb_U1: [-2, -1, 0, 1]
+  Zr_U1: [-2, -1, 0, 1]
+  Ti_U1: [-2, -1, 0, 1]
+
+# 氧化态（用于 pymatgen 缺陷结构生成）
+oxi_states:
+  U: 4
+  O: -2
+  Mo: 4
+  Nb: 5
+  Zr: 4
+  Ti: 4
+
+# VASP 计算参数（缺陷单点/弛豫）
+vasp_params:
+  encut: 650
+  ediff: 1E-7
+  ediffg: -0.02
+  kpoints: [3, 3, 3]       # 大超胞用较稀 k 网格
+  sigma: 0.05
+  ismea: 0
+  ldau: true
+  ldauu: 4.5               # 仅 U 的 f 轨道
+
+# 化学势参考（元素标准态，eV/原子）
+# 富氧(UO2 稳定区)：μ_O = (E[O2] / 2)
+# 贫氧(U 金属稳定区)：μ_U = E[U_bcc]
+chemical_potentials:
+  O_rich: "E_O2 / 2"
+  U_poor: "E_UO2 - 2 * mu_O"
+  dopant: "E_dopant_ref_oxide"
+
+# 有限尺寸修正
+finite_size_correction:
+  method: "Freysoldt-Neugebauer-Van de Walle (FNV)"
+  dielectric: 24.0        # UO2 静态介电常数（文献值，可替换为计算值）

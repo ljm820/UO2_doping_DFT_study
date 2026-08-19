@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# VASP 大文件输出（提交输入文件，忽略计算结果）
+OUTCAR
+OSZICAR
+CHGCAR
+CHG
+WAVECAR
+WAVEDER
+vasprun.xml
+vasp.log
+PROCAR
+POTCAR
+DOSCAR
+EIGENVAL
+PCDAT
+CONTCAR
+LOCPOT
+ELFCAR
+*.outcar
+core.*
+
+# 备份/临时
+*.bak
+*.tmp
+*.swp
+.DS_Store
+
+# 分析输出
+results/*.csv
+06_analysis/*.png
+06_analysis/*.csv
+
+# SSHP 同步备份
+archives/

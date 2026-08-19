@@ -1,0 +1,41 @@
+# ============================================================
+# INCAR -- 亚化学计量比/过化学计量比表面计算模板
+# 适用于: UO2-x / U1-yMyO2-x (O空位) 与 UO2+x / U1-yMyO2+x (间隙O)
+# 参考: Chen & Kaltsoyannis, Appl. Surf. Sci. 537 (2021) 147972
+# ============================================================
+SYSTEM  = SURFACE_DEFECT
+PREC    = Accurate
+ENCUT   = 650
+EDIFF   = 1E-7
+EDIFFG  = -0.02
+ISMEAR  = 0
+SIGMA   = 0.05
+LREAL   = .FALSE.
+
+# --- DFT+U (Dudarev) ---
+LDAU      = .TRUE.
+LDAUTYPE  = 2
+LDAUL     = 3 -1 -1
+LDAUU     = 4.5 0.0 0.0
+LDAUJ     = 0.5 0.0 0.0
+LMAXMIX   = 4
+
+# --- Magnetism ---
+ISPIN   = 2
+# 缺陷体系对亚稳态敏感，建议用 2-3 组初始磁矩试探:
+#   方案1: MAGMOM = 4*2.0 4*-2.0 ... (标准 AFM)
+#   方案2: 空位邻近 U 加大磁矩 (如 3.0) 促进 U(III) 形成
+#   取最低能量构型
+
+# --- Ionic relaxation ---
+NSW     = 200
+IBRION  = 2
+ISIF    = 2          # 缺陷体系固定晶胞形状与体积
+
+# --- Parallel ---
+NCORE   = 8
+
+# --- Output ---
+LWAVE   = .TRUE.
+LCHARG  = .TRUE.
+LORBIT  = 11
